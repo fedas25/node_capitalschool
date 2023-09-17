@@ -43,14 +43,16 @@ async function student(httpRequest) {
 
         if (!await checkingUserType(pool, httpRequest.body.token, 0)) throw new Error
 
+        const data = new Object;
+
         const [[student]] = await pool.execute(`    
             SELECT student.id
             FROM user
             JOIN student ON student.user_id = user.id
             WHERE user.token = ?`, [httpRequest.body.token]);
 
-        const [data] = await pool.execute(`    
-            SELECT  teacher_student_course.id, teacher_student_course.course_id, teacher_student_course.teacher_id, teacher_student_course.number_of_sessions_completed, teacher_student_course.number_of_paid_sessions,
+        const [dataCourse] = await pool.execute(`    
+            SELECT  teacher_student_course.id, teacher_student_course.course_id, teacher_student_course.teacher_id, teacher_student_course.number_of_sessions_completed, teacher_student_course.number_of_paid_sessions, teacher_student_course.test_stage,
             teacher.name, teacher.surname, teacher.patronymic, teacher.link_to_session,
             course.name, course.color, course.duraction_hour, course.price_hour, course.discount_on_first_payment_entire_course
             FROM teacher_student_course
@@ -59,6 +61,16 @@ async function student(httpRequest) {
             JOIN course ON course.id = teacher_student_course.course_id
             WHERE student.id = ?`, [student.id]);
 
+        data.dataCourse = dataCourse;
+            
+        const [[personalData]] = await pool.execute(`    
+            SELECT student.name, student.surname, student.last_name,
+            user.password, user.email
+            FROM student
+            JOIN user ON user.id = student.user_id
+            WHERE student.id = 1`, [httpRequest.body.token]);
+
+        data.personalData = personalData;
 
         await pool.end((err) => {
             if (err) { return console.error(err); }
@@ -107,7 +119,7 @@ async function student(httpRequest) {
                 'Content-Type': 'application/json'
             },
             statusCode: 200,
-            data: JSON.stringify(data)
+            data: JSON.stringify({message: "watch was paid"})
         }
 
         function pay(price) {

@@ -38,7 +38,7 @@ async function student(httpRequest) {
             password: ""
         }).promise();
 
-        if ( !await checkingUserType(pool, httpRequest.body.token, 0) ) throw new Error  
+        // if ( !await checkingUserType(pool, httpRequest.body.token, 0) ) throw new Error  
 
         const data = new Object;
 

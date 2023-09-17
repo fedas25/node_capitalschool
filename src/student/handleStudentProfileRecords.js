@@ -39,6 +39,8 @@ async function student(httpRequest) {
         }).promise();
 
         if ( !await checkingUserType(pool, httpRequest.body.token, 0) ) throw new Error  
+        
+        let data = new Object;
 
         const [[student]] = await pool.execute(`    
             SELECT student.id
@@ -46,7 +48,16 @@ async function student(httpRequest) {
             JOIN student ON student.user_id = user.id
             WHERE user.token = ?`, [httpRequest.body.token]);
 
-        const [data] = await pool.execute(`    
+        const [[personalData]] = await pool.execute(`    
+            SELECT student.name, student.surname, student.last_name,
+            user.password, user.email
+            FROM student
+            JOIN user ON user.id = student.user_id
+            WHERE student.id = 1`, [httpRequest.body.token]);
+
+        data.personalData = personalData;
+
+        const [records] = await pool.execute(`    
         SELECT record.date, record.time, record.type,
         record.teacher_id AS teacherId, teacher.name, teacher.surname, teacher.patronymic, teacher.link_to_session,
         record.course_id AS courseId
@@ -55,6 +66,8 @@ async function student(httpRequest) {
         JOIN teacher ON record.teacher_id = teacher.id
         JOIN course ON record.course_id = course.id
         WHERE record.passed = 0 AND record.student_id = ?`, [student.id]);
+
+        data.records = records;
 
         await pool.end((err) => {
             if (err) { return console.error(err); }
