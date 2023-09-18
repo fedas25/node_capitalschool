@@ -17,42 +17,19 @@ import handleAdminProfileCourse from './admin/handleAdminProfileCourse.js'
 import handleAdminProfileCourseTeacher from './admin/handleAdminProfileCourseTeacher.js'
 import handleAdminProfileFaq from './admin/handleAdminProfileFaq.js'
 import handleAdminProfileTest from './admin/handleAdminProfileTest.js'
-
-import nodemailer from 'nodemailer'
-
-async function mail() {
-    var mail = nodemailer.createTransport({
-        service: 'yandex',
-        auth: {
-            user: 'uasily.lol@yandex.ru', // Your email id
-            pass: '866711221' // Your password
-        }
-    });
-    
-    var mailOptions = {
-        from: 'uasily.lol@yandex.ru',
-        to: 'uasily.lol@yandex.ru',
-        subject: 'ку-ку',
-        text: 'привет )'};
-    
-    mail.sendMail(mailOptions, function(error, info) {
-        if (error) {
-            console.log(error);
-        } else {
-            console.log(0);
-    }});
-}
-
-mail()
-
+import handleUserSendMail from './user/handleUserSendMail.js'
+import handleEmailVerification from './user/handleEmailVerification.js'
+import handleLogIn from './user/handleLogIn.js'
 
 const app = express();
 app.use(express.json());
 
-
-
 app.get('/', hendleMainPage);
 app.get('/course/:id', controller);
+
+app.use('/send-email', handleUserSendMail);
+app.use('/verification-email', handleEmailVerification);
+app.use('/log-in', handleLogIn);
 
 app.use('/student/record/course/:idCourse/teacher/:idTeacher', handleStudentRecord);
 app.use('/student/profile/records', handleStudentProfileRecords);
@@ -85,6 +62,10 @@ function controller(req, res) {
 }
 
 app.listen(3000, () => console.log(`Listening on port 3000`))
+
+
+
+
 
 async function hendleMainPage(req, res) {
     const pool = mysql2.createPool({
