@@ -3,7 +3,7 @@ import adaptRequest from '../helpers/adapt-request.js'
 import makeHttpError from "../helpers/http-error.js"
 import checkingUserType from "../helpers/checking-user-type.js"
 
-export default function handleAdminProfileTeacher(req, res) {
+export default function setTeacherWorkingHours(req, res) {
     const httpRequest = adaptRequest(req);
     student(httpRequest)
         .then(({ headers, statusCode, data }) =>
@@ -18,10 +18,7 @@ export default function handleAdminProfileTeacher(req, res) {
 async function student(httpRequest) {
     switch (httpRequest.method) {
         case 'POST':
-            return createTeacher(httpRequest)
-
-        case 'DELETE':
-            return removeTeacherFromCourse(httpRequest)
+            return setTeacherWorkingHours(httpRequest)
 
         default:
             return makeHttpError({
@@ -30,7 +27,7 @@ async function student(httpRequest) {
             })
     }
 
-    async function createTeacher(httpRequest) { // данные запроса в виде obj
+    async function setTeacherWorkingHours(httpRequest) { // данные запроса в виде obj
         const pool = mysql2.createPool({
             host: "localhost",
             user: "root",
@@ -63,41 +60,6 @@ async function student(httpRequest) {
             },
             statusCode: 200,
             data: JSON.stringify("teacher created")
-        }
-    }
-
-    async function removeTeacherFromCourse(httpRequest) { // данные запроса в виде obj
-        const pool = mysql2.createPool({
-            host: "localhost",
-            user: "root",
-            database: "english_school",
-            password: ""
-        }).promise();
-
-        if (!await checkingUserType(pool, httpRequest.body.token, 2)) throw new Error
-
-        const [isTeacherLeads] = await pool.execute(
-        `SELECT * FROM teacher_student_course 
-         WHERE teacher_id = ?`,
-        [httpRequest.body.idTeacher]);
-
-        if (isTeacherLeads.length != 0) throw new Error
-
-        await pool.execute(
-        `DELETE FROM course_teacher 
-         WHERE teacher_id = ? AND course_id = ?`,
-        [httpRequest.body.idTeacher, httpRequest.body.idCourse]);
-
-        await pool.end((err) => {
-            if (err) { return console.error(err); }
-        });
-
-        return {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            statusCode: 200,
-            data: JSON.stringify("teacher removed from course")
         }
     }
 }

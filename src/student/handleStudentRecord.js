@@ -38,9 +38,9 @@ async function student(httpRequest) {
             password: ""
         }).promise();
 
-        // if ( !await checkingUserType(pool, httpRequest.body.token, 0) ) throw new Error  
+        if ( !await checkingUserType(pool, httpRequest.body.token, 0) ) throw new Error  
 
-        const data = new Object;
+        const data = {};
 
         [data.workHours] = await pool.execute(`    
             SELECT work_day.date, work_time.time, work_time.id AS workTimeId, work_day.id AS workDayId

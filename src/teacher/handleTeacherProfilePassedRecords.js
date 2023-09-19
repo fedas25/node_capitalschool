@@ -44,7 +44,7 @@ async function student(httpRequest) {
         if (!await checkingUserType(pool, httpRequest.body.token, 1)) throw new Error
 
         let data = {};
-        
+
         const [[dataTeacher]] = await pool.execute(`    
             SELECT teacher.id, teacher.name, teacher.surname, teacher.patronymic, teacher.link_to_session, 
             user.email, user.password
@@ -111,16 +111,19 @@ async function student(httpRequest) {
             passed = ?
             WHERE id = ?;`, [httpRequest.queryParams.passed, httpRequest.queryParams.idRecord]);
         // добавить ограничения нельзя больше уроков пройти чем кол-во часов на курсе
-        await pool.execute(`    
-            UPDATE teacher_student_course
-            SET number_of_sessions_completed = number_of_sessions_completed + 1
-            WHERE id = ?`, [httpRequest.queryParams.teacherStudentCourseId]);
-        // нельзя уменьшить кол-во оплаченных сессий если они равны 0
-        await pool.execute(`    
-            UPDATE teacher_student_course
-            SET number_of_paid_sessions = number_of_paid_sessions - 1
-            WHERE id = ? AND`, [httpRequest.queryParams.teacherStudentCourseId]);
         
+        if (Number(httpRequest.queryParams.typeRecord) === 1) {
+            await pool.execute(`    
+                UPDATE teacher_student_course
+                SET number_of_sessions_completed = number_of_sessions_completed + 1
+                WHERE id = ?`, [httpRequest.queryParams.teacherStudentCourseId]);
+            // нельзя уменьшить кол-во оплаченных сессий если они равны 0
+            await pool.execute(`    
+                UPDATE teacher_student_course
+                SET number_of_paid_sessions = number_of_paid_sessions - 1
+                WHERE id = ? AND`, [httpRequest.queryParams.teacherStudentCourseId]);
+        }
+
         await pool.end((err) => {
             if (err) { return console.error(err); }
         });
@@ -130,7 +133,7 @@ async function student(httpRequest) {
                 'Content-Type': 'application/json'
             },
             statusCode: 200,
-            data: JSON.stringify({message: "attendance is marked"})
+            data: JSON.stringify({ message: "attendance is marked" })
         }
     }
 }

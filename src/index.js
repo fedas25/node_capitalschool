@@ -20,6 +20,7 @@ import handleAdminProfileTest from './admin/handleAdminProfileTest.js'
 import handleUserSendMail from './user/handleUserSendMail.js'
 import handleEmailVerification from './user/handleEmailVerification.js'
 import handleLogIn from './user/handleLogIn.js'
+import handleAdminProfileStudent from '../src/admin/handleAdminProfileStudent.js'
 
 const app = express();
 app.use(express.json());
@@ -48,6 +49,7 @@ app.use('/admin/profile/course', handleAdminProfileCourse);
 app.use('/admin/profile/course-teacher', handleAdminProfileCourseTeacher);
 app.use('/admin/profile/faq', handleAdminProfileFaq);
 app.use('/admin/profile/test/:type', handleAdminProfileTest);
+app.use('/admin/profile/student', handleAdminProfileStudent);
 
 function controller(req, res) {
     const httpRequest = adaptRequest(req);

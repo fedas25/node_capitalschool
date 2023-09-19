@@ -40,14 +40,24 @@ async function student(httpRequest) {
 
         if ( !await checkingUserType(pool, httpRequest.body.token, 0) ) throw new Error
 
+        const [testingIsAvailable] = await pool.execute(`
+        SELECT test_stage
+        FROM teacher_student_course
+        WHERE id = ?`,
+        [httpRequest.queryParams.teacherStudentCourseId]
+        );
+
+        //  true 0, 2 Error 1,3
+        if ((testingIsAvailable[0].test_stage % 2) != 0) throw new Error
+
         const [data] = await pool.execute(`
-        SELECT question.id, question.question
+        SELECT question.id, question.question, question_cell_id
         FROM question
         JOIN question_cell ON question.question_cell_id = question_cell.id
         WHERE question_cell.course_id = (SELECT course_id
                                         FROM teacher_student_course
                                         WHERE id = ?)`,
-            [httpRequest.queryParams.teacherStudentCourseId]
+                                        [httpRequest.queryParams.teacherStudentCourseId]
         );
             
         await pool.end((err) => {

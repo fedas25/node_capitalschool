@@ -1,8 +1,9 @@
 import mysql2 from "mysql2"
 import adaptRequest from '../helpers/adapt-request.js'
 import makeHttpError from "../helpers/http-error.js"
+import checkingUserType from "../helpers/checking-user-type.js"
 
-export default function handleLogIn(req, res) {
+export default function handleAdminProfileStudent(req, res) {
     const httpRequest = adaptRequest(req);
     student(httpRequest)
         .then(({ headers, statusCode, data }) =>
@@ -17,7 +18,7 @@ export default function handleLogIn(req, res) {
 async function student(httpRequest) {
     switch (httpRequest.method) {
         case 'PUT':
-            return logIn(httpRequest)
+            return transferStudentAnotherTeacher(httpRequest)
 
         default:
             return makeHttpError({
@@ -26,7 +27,7 @@ async function student(httpRequest) {
             })
     }
 
-    async function logIn(httpRequest) { // данные запроса в виде obj
+    async function transferStudentAnotherTeacher(httpRequest) { // данные запроса в виде obj
         const pool = mysql2.createPool({
             host: "localhost",
             user: "root",
@@ -34,27 +35,13 @@ async function student(httpRequest) {
             password: ""
         }).promise();
 
-        let data = {};
+        if (!await checkingUserType(pool, httpRequest.body.token, 2)) throw new Error
 
-        const [userFound] = await pool.execute(`    
-            SELECT id, type
-            from user
-            WHERE email = "${httpRequest.body.email}"
-            AND password = "${httpRequest.body.password}"`);
+        await pool.execute(
+        `UPDATE teacher_student_course
+        SET teacher_id = ?
+        WHERE id = ?`, [httpRequest.body.teacherId, httpRequest.body.idTeacherStudentCourse]);
 
-        if (userFound.length === 0) throw new Error
-
-        data.token = Math.floor(1000 + Math.random() * 10e6);
-
-        await pool.execute(`    
-            UPDATE user
-            SET token = ?
-            WHERE id = ?`, [data.token, userFound[0].id]);
-
-        await pool.execute(`    
-            DELETE FROM verififcations
-            WHERE email =  "${httpRequest.body.email}"`);
-        
         await pool.end((err) => {
             if (err) { return console.error(err); }
         });
@@ -64,11 +51,7 @@ async function student(httpRequest) {
                 'Content-Type': 'application/json'
             },
             statusCode: 200,
-            data: JSON.stringify({
-                message: "log in has been completed",
-                token: data.token
-            })
+            data: JSON.stringify(`the teacher id ${httpRequest.body.teacherId} is assigned to the course id ${httpRequest.body.idTeacherStudentCourse}`)
         }
     }
-
 }
