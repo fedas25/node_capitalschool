@@ -21,6 +21,7 @@ import handleUserSendMail from './user/handleUserSendMail.js'
 import handleEmailVerification from './user/handleEmailVerification.js'
 import handleLogIn from './user/handleLogIn.js'
 import handleAdminProfileStudent from '../src/admin/handleAdminProfileStudent.js'
+import handleAdminProfileSetWorkHours from '../src/admin/handleAdminProfileSetWorkHours.js'
 
 const app = express();
 app.use(express.json());
@@ -44,12 +45,22 @@ app.use('/teacher/profile/records', handleTeacherProfileRecords);
 app.use('/teacher/profile/passed-records', handleTeacherProfilePassedRecords);
 app.use('/teacher/profile/students', handleTeacherProfileStudents);
 
-app.use('/admin/profile/teacher', handleAdminProfileTeacher);
 app.use('/admin/profile/course', handleAdminProfileCourse);
 app.use('/admin/profile/course-teacher', handleAdminProfileCourseTeacher);
 app.use('/admin/profile/faq', handleAdminProfileFaq);
 app.use('/admin/profile/test/:type', handleAdminProfileTest);
 app.use('/admin/profile/student', handleAdminProfileStudent);
+
+app.use('/admin/profile/teacher', handleAdminProfileTeacher);
+app.use('/admin/profile/teacher/:id/working-hours', handleAdminProfileSetWorkHours);
+
+// app.use('/admin/profile/teacher/:id/working-a', () => {console.log(1);});
+// app.use('/admin/profile/teacher/:id/working-b', () => {console.log(2);});
+// app.use('/admin/profile/teacher/:id/working-c', () => {console.log(3);});
+// вроде как работает)
+
+
+
 
 function controller(req, res) {
     const httpRequest = adaptRequest(req);
