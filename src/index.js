@@ -22,6 +22,7 @@ import handleEmailVerification from './user/handleEmailVerification.js'
 import handleLogIn from './user/handleLogIn.js'
 import handleAdminProfileStudent from '../src/admin/handleAdminProfileStudent.js'
 import handleAdminProfileSetWorkHours from '../src/admin/handleAdminProfileSetWorkHours.js'
+import upload from './middleware/upload.js'
 
 const app = express();
 app.use(express.json());
@@ -50,14 +51,27 @@ app.use('/admin/profile/course-teacher', handleAdminProfileCourseTeacher);
 app.use('/admin/profile/faq', handleAdminProfileFaq);
 app.use('/admin/profile/test/:type', handleAdminProfileTest);
 app.use('/admin/profile/student', handleAdminProfileStudent);
-
-app.use('/admin/profile/teacher', handleAdminProfileTeacher);
+// какой-то обработчик повесить надо нормальный надо добавить проверку на админа
+// с остановкой записи в память файла
+app.use('/admin/profile/teacher/:id/photo', upload('img'), (req, res) => res.send("photo"));
+app.use('/admin/profile/teacher/:id/audio', upload('audio'), (req, res) => res.send("audio"));
 app.use('/admin/profile/teacher/:id/working-hours', handleAdminProfileSetWorkHours);
+app.use('/admin/profile/teacher', handleAdminProfileTeacher);
 
+// нормальные пути
 // app.use('/admin/profile/teacher/:id/working-a', () => {console.log(1);});
 // app.use('/admin/profile/teacher/:id/working-b', () => {console.log(2);});
 // app.use('/admin/profile/teacher/:id/working-c', () => {console.log(3);});
-// вроде как работает)
+// вроде как работает, надежда есть)
+
+app.listen(3000, () => console.log(`Listening on port 3000`))
+
+
+
+
+
+
+
 
 
 
@@ -73,12 +87,6 @@ function controller(req, res) {
         )
         .catch(e => res.status(500).end())
 }
-
-app.listen(3000, () => console.log(`Listening on port 3000`))
-
-
-
-
 
 async function hendleMainPage(req, res) {
     const pool = mysql2.createPool({
